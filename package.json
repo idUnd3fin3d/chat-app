@@ -25,7 +25,7 @@
   },
   "scripts": {
     "serve": "cross-env NODE_ENV=development webpack serve --mode=development --progress",
-    "build": "cross-env NODE_ENV=development webpack --mode=development",
+    "build:dev": "cross-env NODE_ENV=development webpack --mode=development",
     "build:prod": "cross-env NODE_ENV=production webpack --mode=production --config webpack.config.prod.js",
     "build:analyze": "cross-env NODE_ENV=production BUNDLE_ANALYZER=1 webpack --mode=production --config webpack.config.prod.js",
     "eslint": "eslint ./src --ext .ts,.tsx",

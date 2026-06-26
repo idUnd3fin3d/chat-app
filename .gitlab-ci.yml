@@ -1,0 +1,74 @@
+stages:
+  - build
+  - deploy
+  - clear
+
+default:
+  image: $DOCKER_REGISTRY_HOST/ci-cd:latest
+
+before_script: chmod -R +x scripts/ci-cd
+
+.prod:
+  variables:
+    SERVICE_NAME: $CI_PROJECT_NAME
+    SERVICE_DOMAIN: $K8S_INGRESS_DOMAIN
+  before_script:
+    - !reference [before_script]
+    - kubectl config set-context --current --namespace=$K8S_NAMESPACE_PROD
+
+.dev:
+  variables:
+    SERVICE_NAME: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"
+    SERVICE_DOMAIN: "${CI_COMMIT_REF_SLUG}.dev.${K8S_INGRESS_DOMAIN}"
+  before_script:
+    - !reference [before_script]
+    - kubectl config set-context --current --namespace=$K8S_NAMESPACE_DEV
+
+prepare-container:
+  stage: build
+  script: scripts/ci-cd/prepare_container.sh
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      variables:
+        BUILD_TARGET: dev
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      variables:
+        BUILD_TARGET: prod
+  artifacts:
+    paths:
+      - image_ref
+  interruptible: true
+
+deploy-prod:
+  stage: deploy
+  extends: .prod
+  script: scripts/ci-cd/k8s/deploy.sh
+  environment:
+    name: prod
+    url: "https://${K8S_INGRESS_DOMAIN}/"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+deploy-branch:
+  stage: deploy
+  extends: .dev
+  script: scripts/ci-cd/k8s/deploy.sh
+  environment:
+    name: dev/$CI_COMMIT_REF_SLUG
+    url: "https://${CI_COMMIT_REF_SLUG}.dev.${K8S_INGRESS_DOMAIN}/"
+    on_stop: clear
+    auto_stop_in: 1 week
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      when: manual
+
+clear:
+  stage: clear
+  extends: .dev
+  script: scripts/ci-cd/k8s/clear_deployment.sh
+  environment:
+    name: dev/$CI_COMMIT_REF_SLUG
+    action: stop
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      when: manual
