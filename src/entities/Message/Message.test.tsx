@@ -22,13 +22,34 @@ const message: MessageWithSender = {
 const serviceMessage = { ...message, service: MESSAGE_SERVICE_TYPES.CHAT_LEFT };
 
 describe('Message entity', () => {
+  let toLocaleDateStringMock: ReturnType<typeof jest.spyOn>, toLocaleTimeStringMock: ReturnType<typeof jest.spyOn>;
+
+  beforeAll(() => {
+    const toLocaleDateString = Date.prototype.toLocaleDateString;
+    toLocaleDateStringMock = jest.spyOn(Date.prototype, 'toLocaleDateString').mockImplementation(function (...args) {
+      // @ts-expect-error TS2683
+      return toLocaleDateString.apply(this, [args[0] || 'ru-RU', { ...args[1], timeZone: args[1]?.timeZone || 'UTC' }]);
+    });
+
+    const toLocaleTimeString = Date.prototype.toLocaleTimeString;
+    toLocaleTimeStringMock = jest.spyOn(Date.prototype, 'toLocaleTimeString').mockImplementation(function (...args) {
+      // @ts-expect-error TS2683
+      return toLocaleTimeString.apply(this, [args[0] || 'ru-RU', { ...args[1], timeZone: args[1]?.timeZone || 'UTC' }]);
+    });
+  });
+
+  afterAll(() => {
+    toLocaleDateStringMock.mockRestore();
+    toLocaleTimeStringMock.mockRestore();
+  });
+
   afterEach(() => {
     cleanup();
   });
 
   test('utils', () => {
     expect(getUserTitle(message)).toEqual('test_user(2Qne)');
-    expect(formatDate(message.date)).toEqual('14.07.2024 03:00:00');
+    expect(formatDate(message.date)).toEqual('14.07.2024 00:00:00');
   });
 
   test('renders content', () => {

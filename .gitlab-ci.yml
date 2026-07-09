@@ -1,4 +1,6 @@
 stages:
+  - lint
+  - test
   - build
   - deploy
   - clear
@@ -23,6 +25,24 @@ before_script: chmod -R +x scripts/ci-cd
   before_script:
     - !reference [before_script]
     - kubectl config set-context --current --namespace=$K8S_NAMESPACE_DEV
+
+eslint:
+  stage: lint
+  script:
+    - npm ci
+    - npm run eslint
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+  interruptible: true
+
+test:
+  stage: test
+  script:
+    - npm ci
+    - npm run test
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+  interruptible: true
 
 prepare-container:
   stage: build
