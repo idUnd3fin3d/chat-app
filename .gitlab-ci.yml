@@ -26,20 +26,27 @@ before_script: chmod -R +x scripts/ci-cd
     - !reference [before_script]
     - kubectl config set-context --current --namespace=$K8S_NAMESPACE_DEV
 
+.npm-dependencies:
+  before_script:
+    - !reference [before_script]
+    - npm ci --cache .npm --prefer-offline --no-audit
+  cache:
+    key: npm-cache-$CI_PROJECT_ID
+    paths:
+      - .npm/
+
 eslint:
   stage: lint
-  script:
-    - npm ci
-    - npm run eslint
+  extends: .npm-dependencies
+  script: npm run eslint
   rules:
     - if: $CI_MERGE_REQUEST_ID
   interruptible: true
 
 test:
   stage: test
-  script:
-    - npm ci
-    - npm run test
+  extends: .npm-dependencies
+  script: npm run test
   rules:
     - if: $CI_MERGE_REQUEST_ID
   interruptible: true
