@@ -25,6 +25,7 @@
   },
   "scripts": {
     "serve": "cross-env NODE_ENV=development webpack serve --mode=development --progress",
+    "serve:docker": "docker build --target dev-server -t chat-app:dev-server . && docker run -it --rm -v .:/app -p 3000:3000 --name chat-app-dev-server chat-app:dev-server",
     "build:dev": "cross-env NODE_ENV=development webpack --mode=development",
     "build:prod": "cross-env NODE_ENV=production webpack --mode=production --config webpack.config.prod.js",
     "build:analyze": "cross-env NODE_ENV=production BUNDLE_ANALYZER=1 webpack --mode=production --config webpack.config.prod.js",
