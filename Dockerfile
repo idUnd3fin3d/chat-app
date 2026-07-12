@@ -3,7 +3,7 @@
 FROM node:22 AS base
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --no-audit
 COPY . .
 ARG API_URL
 ARG WS_URL

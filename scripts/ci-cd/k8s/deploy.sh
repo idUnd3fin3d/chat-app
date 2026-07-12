@@ -4,7 +4,6 @@ IMAGE_REF=$(cat image_ref)
 
 if kubectl get deployment $SERVICE_NAME > /dev/null 2>&1; then
   kubectl set image deployment/${SERVICE_NAME} app=${IMAGE_REF}
-  kubectl rollout status -w deployment/${SERVICE_NAME}
 else
   cat <<EOF | kubectl apply -f -
   apiVersion: apps/v1
@@ -51,3 +50,5 @@ if kubectl get ingress $K8S_INGRESS_NAME > /dev/null 2>&1; then
 else
   kubectl create ingress $K8S_INGRESS_NAME --rule="${SERVICE_DOMAIN}/*=${SERVICE_NAME}:80"
 fi
+
+kubectl rollout status -w deployment/${SERVICE_NAME}
