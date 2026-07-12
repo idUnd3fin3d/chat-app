@@ -50,6 +50,8 @@ cache-deps:
   rules:
     - changes:
         - package-lock.json
+    - when: manual
+      allow_failure: true
 
 eslint:
   stage: lint
