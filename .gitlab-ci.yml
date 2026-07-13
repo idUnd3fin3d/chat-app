@@ -11,17 +11,11 @@ default:
 before_script: chmod -R +x scripts/ci-cd
 
 .prod:
-  variables:
-    SERVICE_NAME: $CI_PROJECT_NAME
-    SERVICE_DOMAIN: $K8S_INGRESS_DOMAIN
   before_script:
     - !reference [before_script]
     - kubectl config set-context --current --namespace=$K8S_NAMESPACE_PROD
 
 .dev:
-  variables:
-    SERVICE_NAME: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"
-    SERVICE_DOMAIN: "${CI_COMMIT_REF_SLUG}.dev.${K8S_INGRESS_DOMAIN}"
   before_script:
     - !reference [before_script]
     - kubectl config set-context --current --namespace=$K8S_NAMESPACE_DEV
@@ -60,6 +54,9 @@ prepare-container:
     - if: $CI_MERGE_REQUEST_ID
       variables:
         BUILD_TARGET: dev
+    - if: $CI_COMMIT_BRANCH == $DEV_BRANCH_NAME
+      variables:
+        BUILD_TARGET: dev
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       variables:
         BUILD_TARGET: prod
@@ -68,9 +65,25 @@ prepare-container:
       - image_ref
   interruptible: true
 
+deploy-dev:
+  stage: deploy
+  extends: .dev
+  variables:
+    SERVICE_NAME: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"
+    SERVICE_DOMAIN: "dev.${K8S_INGRESS_DOMAIN}"
+  script: scripts/ci-cd/k8s/deploy.sh
+  environment:
+    name: dev
+    url: "https://dev.${K8S_INGRESS_DOMAIN}/"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $DEV_BRANCH_NAME
+
 deploy-prod:
   stage: deploy
   extends: .prod
+  variables:
+    SERVICE_NAME: $CI_PROJECT_NAME
+    SERVICE_DOMAIN: $K8S_INGRESS_DOMAIN
   script: scripts/ci-cd/k8s/deploy.sh
   environment:
     name: prod
@@ -81,19 +94,24 @@ deploy-prod:
 deploy-branch:
   stage: deploy
   extends: .dev
+  variables:
+    SERVICE_NAME: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"
+    SERVICE_DOMAIN: "${CI_COMMIT_REF_SLUG}.dev.${K8S_INGRESS_DOMAIN}"
   script: scripts/ci-cd/k8s/deploy.sh
   environment:
     name: dev/$CI_COMMIT_REF_SLUG
     url: "https://${CI_COMMIT_REF_SLUG}.dev.${K8S_INGRESS_DOMAIN}/"
-    on_stop: clear
+    on_stop: clear-branch
     auto_stop_in: 1 week
   rules:
     - if: $CI_MERGE_REQUEST_ID
       when: manual
 
-clear:
+clear-branch:
   stage: clear
   extends: .dev
+  variables:
+    SERVICE_NAME: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"
   script: scripts/ci-cd/k8s/clear_deployment.sh
   environment:
     name: dev/$CI_COMMIT_REF_SLUG
