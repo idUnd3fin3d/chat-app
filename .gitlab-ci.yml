@@ -69,7 +69,7 @@ deploy-dev:
   stage: deploy
   extends: .dev
   variables:
-    SERVICE_NAME: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"
+    SERVICE_NAME: "${CI_PROJECT_PATH_SLUG}-dev"
     SERVICE_DOMAIN: "dev.${K8S_INGRESS_DOMAIN}"
   script: scripts/ci-cd/k8s/deploy.sh
   environment:
@@ -82,7 +82,7 @@ deploy-prod:
   stage: deploy
   extends: .prod
   variables:
-    SERVICE_NAME: $CI_PROJECT_NAME
+    SERVICE_NAME: $CI_PROJECT_PATH_SLUG
     SERVICE_DOMAIN: $K8S_INGRESS_DOMAIN
   script: scripts/ci-cd/k8s/deploy.sh
   environment:
@@ -95,7 +95,7 @@ deploy-branch:
   stage: deploy
   extends: .dev
   variables:
-    SERVICE_NAME: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"
+    SERVICE_NAME: "${CI_PROJECT_PATH_SLUG}-branch-${CI_COMMIT_REF_SLUG}"
     SERVICE_DOMAIN: "${CI_COMMIT_REF_SLUG}.dev.${K8S_INGRESS_DOMAIN}"
   script: scripts/ci-cd/k8s/deploy.sh
   environment:
@@ -111,7 +111,7 @@ clear-branch:
   stage: clear
   extends: .dev
   variables:
-    SERVICE_NAME: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"
+    SERVICE_NAME: "${CI_PROJECT_PATH_SLUG}-branch-${CI_COMMIT_REF_SLUG}"
   script: scripts/ci-cd/k8s/clear_deployment.sh
   environment:
     name: dev/$CI_COMMIT_REF_SLUG
