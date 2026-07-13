@@ -29,29 +29,13 @@ before_script: chmod -R +x scripts/ci-cd
 .npm-dependencies:
   before_script:
     - !reference [before_script]
-    # fallback
     - if [ ! -d node_modules ]; then
     - npm ci
     - fi
   cache:
-    key: node_modules-$CI_PROJECT_ID
+    key: node_modules-${CI_PROJECT_ID}-${CI_COMMIT_REF_SLUG}
     paths:
       - node_modules/
-    policy: pull
-
-cache-deps:
-  stage: .pre
-  script: npm ci
-  cache:
-    key: node_modules-$CI_PROJECT_ID
-    paths:
-      - node_modules/
-    policy: push
-  rules:
-    - changes:
-        - package-lock.json
-    - when: manual
-      allow_failure: true
 
 eslint:
   stage: lint
