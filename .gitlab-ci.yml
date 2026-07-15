@@ -71,6 +71,7 @@ deploy-dev:
   variables:
     SERVICE_NAME: "${CI_PROJECT_PATH_SLUG}-dev"
     SERVICE_DOMAIN: "dev.${K8S_INGRESS_DOMAIN}"
+    K8S_REPLICAS_COUNT: $K8S_REPLICAS_COUNT_DEV
   script: scripts/ci-cd/k8s/deploy.sh
   environment:
     name: dev
@@ -84,6 +85,7 @@ deploy-prod:
   variables:
     SERVICE_NAME: $CI_PROJECT_PATH_SLUG
     SERVICE_DOMAIN: $K8S_INGRESS_DOMAIN
+    K8S_REPLICAS_COUNT: $K8S_REPLICAS_COUNT_PROD
   script: scripts/ci-cd/k8s/deploy.sh
   environment:
     name: prod
@@ -97,6 +99,7 @@ deploy-branch:
   variables:
     SERVICE_NAME: "${CI_PROJECT_PATH_SLUG}-branch-${CI_COMMIT_REF_SLUG}"
     SERVICE_DOMAIN: "${CI_COMMIT_REF_SLUG}.dev.${K8S_INGRESS_DOMAIN}"
+    K8S_REPLICAS_COUNT: $K8S_REPLICAS_COUNT_DEV
   script: scripts/ci-cd/k8s/deploy.sh
   environment:
     name: dev/$CI_COMMIT_REF_SLUG
