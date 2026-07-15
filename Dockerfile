@@ -14,10 +14,10 @@ RUN npm run build:dev
 FROM base AS build-prod
 RUN npm run build:prod
 
-FROM nginx:alpine as dev
+FROM nginx:alpine AS dev
 COPY --from=build-dev /app/dist /usr/share/nginx/html
 
-FROM nginx:alpine as prod
+FROM nginx:alpine AS prod
 COPY --from=build-prod /app/dist /usr/share/nginx/html
 
 FROM node:22 AS dev-server
