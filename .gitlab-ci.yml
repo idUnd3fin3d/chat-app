@@ -127,8 +127,15 @@ merge-down:
     - git config --global user.name "$GITLAB_USER_NAME"
     - git remote set-url --push origin $CI_REPOSITORY_URL
   script:
-    - git fetch origin $DEV_BRANCH_NAME && git checkout $DEV_BRANCH_NAME && git pull origin $DEV_BRANCH_NAME && git rebase origin/$CI_DEFAULT_BRANCH && git push origin HEAD:$DEV_BRANCH_NAME
+    - |
+      git fetch origin $DEV_BRANCH_NAME && \
+      git checkout $DEV_BRANCH_NAME && \
+      git pull origin $DEV_BRANCH_NAME && \
+      git rebase origin/$CI_DEFAULT_BRANCH && \
+      git push origin HEAD:$DEV_BRANCH_NAME && \
+      curl --request POST --form "token=$CI_JOB_TOKEN" --form "ref=$DEV_BRANCH_NAME" http://$CI_SERVER_HOST/api/v4/projects/$CI_PROJECT_ID/trigger/pipeline
   after_script:
     - git rebase --abort
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  allow_failure: true
