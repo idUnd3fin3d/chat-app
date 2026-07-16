@@ -2,6 +2,12 @@
 
 IMAGE_REF=$(cat image_ref)
 
+if [ $ENV == "dev" ]; then
+  K8S_REPLICAS_COUNT=$K8S_REPLICAS_COUNT_DEV
+else
+  K8S_REPLICAS_COUNT=$K8S_REPLICAS_COUNT_PROD
+fi
+
 if kubectl get deployment $SERVICE_NAME > /dev/null 2>&1; then
   kubectl set image deployment/${SERVICE_NAME} app=${IMAGE_REF}
   kubectl scale --replicas=${K8S_REPLICAS_COUNT} deployment/${SERVICE_NAME}

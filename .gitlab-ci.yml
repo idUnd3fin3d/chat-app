@@ -53,13 +53,13 @@ prepare-container:
   rules:
     - if: $CI_MERGE_REQUEST_ID
       variables:
-        BUILD_TARGET: dev
+        ENV: dev
     - if: $CI_COMMIT_BRANCH == $DEV_BRANCH_NAME
       variables:
-        BUILD_TARGET: dev
+        ENV: dev
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       variables:
-        BUILD_TARGET: prod
+        ENV: prod
   artifacts:
     paths:
       - image_ref
@@ -71,7 +71,7 @@ deploy-dev:
   variables:
     SERVICE_NAME: "${CI_PROJECT_PATH_SLUG}-dev"
     SERVICE_DOMAIN: "dev.${K8S_INGRESS_DOMAIN}"
-    K8S_REPLICAS_COUNT: $K8S_REPLICAS_COUNT_DEV
+    ENV: dev
   script: scripts/ci-cd/k8s/deploy.sh
   environment:
     name: dev
@@ -85,7 +85,7 @@ deploy-prod:
   variables:
     SERVICE_NAME: $CI_PROJECT_PATH_SLUG
     SERVICE_DOMAIN: $K8S_INGRESS_DOMAIN
-    K8S_REPLICAS_COUNT: $K8S_REPLICAS_COUNT_PROD
+    ENV: prod
   script: scripts/ci-cd/k8s/deploy.sh
   environment:
     name: prod
@@ -99,7 +99,7 @@ deploy-branch:
   variables:
     SERVICE_NAME: "${CI_PROJECT_PATH_SLUG}-branch-${CI_COMMIT_REF_SLUG}"
     SERVICE_DOMAIN: "${CI_COMMIT_REF_SLUG}.dev.${K8S_INGRESS_DOMAIN}"
-    K8S_REPLICAS_COUNT: $K8S_REPLICAS_COUNT_DEV
+    ENV: dev
   script: scripts/ci-cd/k8s/deploy.sh
   environment:
     name: dev/$CI_COMMIT_REF_SLUG
