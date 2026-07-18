@@ -124,7 +124,7 @@ clear-branch:
       when: manual
 
 merge-down:
-  stage: .pre
+  stage: .post
   before_script:
     - git config --global user.email "$GITLAB_USER_EMAIL"
     - git config --global user.name "$GITLAB_USER_NAME"
