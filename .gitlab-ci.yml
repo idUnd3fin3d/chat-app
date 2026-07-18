@@ -133,7 +133,7 @@ merge-down:
     - |
       git fetch origin $DEV_BRANCH_NAME && \
       git checkout $DEV_BRANCH_NAME && \
-      git pull origin $DEV_BRANCH_NAME && \
+      git reset --hard origin/$DEV_BRANCH_NAME && \
       git rebase origin/$CI_DEFAULT_BRANCH && \
       git push origin HEAD:$DEV_BRANCH_NAME && \
       curl --request POST --form "token=$CI_JOB_TOKEN" --form "ref=$DEV_BRANCH_NAME" http://$CI_SERVER_HOST/api/v4/projects/$CI_PROJECT_ID/trigger/pipeline
