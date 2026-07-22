@@ -55,7 +55,41 @@ EOF
 if kubectl get ingress $K8S_INGRESS_NAME > /dev/null 2>&1; then
   kubectl ingress-rule set $K8S_INGRESS_NAME --host $SERVICE_DOMAIN --path "/" --path-type "prefix" --service $SERVICE_NAME --port 80
 else
-  kubectl create ingress $K8S_INGRESS_NAME --rule="${SERVICE_DOMAIN}/*=${SERVICE_NAME}:80"
+  cat <<EOF | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${K8S_INGRESS_NAME}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '3600'
+
+    nginx.ingress.kubernetes.io/proxy-buffering: 'off'
+    nginx.ingress.kubernetes.io/proxy-request-buffering: 'off'
+
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+
+    nginx.ingress.kubernetes.io/limit-rps: '10'
+    nginx.ingress.kubernetes.io/limit-connections: '100'
+
+    nginx.ingress.kubernetes.io/limit-req-status-code: '429'
+    nginx.ingress.kubernetes.io/limit-conn-status-code: '429'
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ${SERVICE_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ${SERVICE_NAME}
+                port:
+                  number: 80
+EOF
 fi
 
 kubectl rollout status -w deployment/${SERVICE_NAME}
