@@ -53,7 +53,7 @@ spec:
 EOF
 
 if kubectl get ingress $K8S_INGRESS_NAME > /dev/null 2>&1; then
-  kubectl ingress-rule set $K8S_INGRESS_NAME --host $SERVICE_DOMAIN --path "/" --path-type "prefix" --service $SERVICE_NAME --port 80
+  kubectl ingress-rule set $K8S_INGRESS_NAME --host $SERVICE_DOMAIN --path "/" --path-type "prefix" --service $SERVICE_NAME --port 80 --tls $K8S_TLS_SECRET_NAME
 else
   cat <<EOF | kubectl apply -f -
 apiVersion: networking.k8s.io/v1
@@ -78,6 +78,10 @@ metadata:
     nginx.ingress.kubernetes.io/limit-conn-status-code: '429'
 spec:
   ingressClassName: nginx
+  tls:
+    - secretName: ${K8S_TLS_SECRET_NAME}
+      hosts:
+        - ${SERVICE_DOMAIN}
   rules:
     - host: ${SERVICE_DOMAIN}
       http:
